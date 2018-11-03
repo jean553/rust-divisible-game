@@ -1,8 +1,20 @@
 extern crate rand;
 
 use std::io::stdin;
+use std::time::Instant;
 
 use rand::{thread_rng, Rng};
+
+/**
+ * Handles user input with expected error message if failure.
+ *
+ * Args:
+ *
+ * `destination` - where the input should be stored
+ */
+fn handle_input(destination: &mut String) {
+    stdin().read_line(destination).expect("Invalid input");
+}
 
 /**
  *
@@ -13,6 +25,8 @@ fn main() {
 
     let mut question_number = 1;
     let mut mark = 0;
+
+    let start_time = Instant::now();
 
     loop {
 
@@ -37,26 +51,49 @@ fn main() {
         );
 
         let mut input = String::new();
-        stdin().read_line(&mut input).expect("Invalid input.");
+        handle_input(&mut input);
 
         let answer = input.bytes().nth(0).unwrap();
 
-        let is_divisible = dividand % divisor as u16 == 0;
+        let rest = dividand % divisor as u16;
+        let is_divisible = rest == 0;
 
         const YES_INPUT: u8 = 'y' as u8;
-        
+
         if answer == YES_INPUT && is_divisible ||
            answer != YES_INPUT && !is_divisible {
-            mark += 1;
             println!("Correct!");
+
+            if is_divisible && (
+                divisor == 9 ||
+                divisor == 8 ||
+                divisor == 4
+            ) {
+
+                println!("What is the rest of this division ?");
+                handle_input(&mut input);
+
+                let answer = input.trim().parse::<u16>().unwrap();
+
+                if rest == answer {
+                    mark += 1;
+                    println!("Correct!");
+                } else {
+                    println!("Wrong!");
+                }
+            } else {
+                mark += 1;
+            }
+
         } else {
             println!("Wrong!");
         }
 
-        if question_number == 20 {
+        const ALLOWED_TIME_SECONDS: u8 = 60;
+        if start_time.elapsed().as_secs() as u8 >= ALLOWED_TIME_SECONDS {
             break;
         }
     }
 
-    println!("Finished! Your mark is {} / 20.", mark);
+    println!("Finished! You successfully answered {} questions!", mark);
 }
